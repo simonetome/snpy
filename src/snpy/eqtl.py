@@ -1,4 +1,5 @@
-from .api_calls import GTExClient
+from .gtex_client import GTExClient
+from .exception_utils import get_exception
 from .config import gtex_tissues
 # variable for tissues id in GTEx
 
@@ -9,6 +10,7 @@ class EQTLResolver:
         #self._local = LocalGTExBackend() if backend != "api" else None
         self._backend = backend
 
+    @get_exception
     def get_eqtl(
             self, 
             variant_ids: str | list, 
@@ -17,8 +19,10 @@ class EQTLResolver:
         ):
         if self._backend == "local":
             return None
-        return self._api.get_eqtls(variant_ids, tissues, dataset_id)
+        else:
+            return self._api.get_eqtls(variant_ids, tissues, dataset_id)
 
+    
     def get_variant(self, rsid: str):
         if self._backend == "local":
             return None
