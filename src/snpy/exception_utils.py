@@ -3,10 +3,12 @@ from tenacity import RetryError
 
 
 def get_exception(func):
+    
     @wraps(func)
     def _api_call(*args, **kwargs):
         try:
             print("Doing call")
+            print("CIAO")
             return func(*args, **kwargs)
 
         except RetryError as e:

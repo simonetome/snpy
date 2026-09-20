@@ -42,6 +42,7 @@ with open("test/data/best_snps.txt","r") as f:
 print(snps)
 
 if __name__ == "__main__":   
+    
     data = get_eqtl(snps)
     df = pl.DataFrame(data)
     print(df)

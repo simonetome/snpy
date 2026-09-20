@@ -18,15 +18,25 @@ class GTExClient(BaseAPIClient):
             )
             for x in repeated_elem
         ]
-        return [item for raw in results for item in self.parse(raw)]
+        
+        temp = [item 
+                for raw in results 
+                for item in self.parse(raw) if raw['paging_info']['totalNumberOfItems'] != 0]
 
+        # return only non empty 
+        return temp
 
     def get_variant(self, snp_id):
-
+        print("GET VARIANT")
         if isinstance(snp_id,list):
             return self._repeat_for_list(self.base_url+'dataset/variant',"snpId",snp_id)
-        
-        raw = self._get(self.base_url+'dataset/variant', params={"snpId": snp_id})
+
+        try:
+            raw = self._get(self.base_url+'dataset/variant', params={"snpId": snp_id})
+        except: # variant has not been found
+            raw = None
+            print("CIAO")
+
         return self.parse(raw)
          
 
@@ -40,16 +50,21 @@ class GTExClient(BaseAPIClient):
                 need_conversion = True
 
         elif isinstance(variant_ids, str) and variant_ids.lower().startswith("rs"):
-                need_conversion = True
+            need_conversion = True
 
         if need_conversion:
             variant_infos = self.get_variant(variant_ids)
+
             print(variant_infos)
+
             id_mapping = {
                 v_info['snpId'] : v_info['variantId'] 
                 for v_info in variant_infos
             }
-            variant_ids = [id_mapping[v.lower()] for v in variant_ids]
+            # variant ids -> take GTEX for rsid
+            variant_ids = [id_mapping[v.lower()] for v in variant_ids if v.lower() in id_mapping]
+
+            print(variant_ids)
         else:
             print("Not needing conversion")
 
