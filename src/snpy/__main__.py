@@ -43,8 +43,7 @@ print(snps)
 
 if __name__ == "__main__":   
     
-    data = get_eqtl(snps)
-    df = pl.DataFrame(data)
-    print(df)
-    df.write_csv("test/output/best_snps.csv")
+    data = get_eqtl(snps, tissues=["Muscle_Skeletal","Testis"])
+    print(data)
+    data.write_csv("test/output/best_snps.csv")
 

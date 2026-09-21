@@ -1,6 +1,7 @@
 from .api_client import BaseAPIClient
 
 import numpy as np
+import polars as pl
 
 class GTExClient(BaseAPIClient):
 
@@ -21,7 +22,7 @@ class GTExClient(BaseAPIClient):
         
         temp = [item 
                 for raw in results 
-                for item in self.parse(raw) if raw['paging_info']['totalNumberOfItems'] != 0]
+                for item in raw['data'] if raw['paging_info']['totalNumberOfItems'] != 0]
 
         # return only non empty 
         return temp
@@ -35,7 +36,6 @@ class GTExClient(BaseAPIClient):
             raw = self._get(self.base_url+'dataset/variant', params={"snpId": snp_id})
         except: # variant has not been found
             raw = None
-            print("CIAO")
 
         return self.parse(raw)
          
@@ -44,6 +44,7 @@ class GTExClient(BaseAPIClient):
 
         # if variant_ids are not GenCode ids -> convert
         need_conversion = False
+        variant_infos = None 
 
         if isinstance(variant_ids, list):
             if np.any([v.lower().startswith("rs") for v in variant_ids]):
@@ -55,7 +56,6 @@ class GTExClient(BaseAPIClient):
         if need_conversion:
             variant_infos = self.get_variant(variant_ids)
 
-            print(variant_infos)
 
             id_mapping = {
                 v_info['snpId'] : v_info['variantId'] 
@@ -73,13 +73,42 @@ class GTExClient(BaseAPIClient):
             self.base_url+'association/singleTissueEqtl', 
             params={
                 "variantId": variant_ids,
-                #"tissueSiteDetailId": "",
-                "datasetId": "gtex_v8",
+                "tissueSiteDetailId": tissues,
+                "datasetId": dataset_id,
                 "itemsPerPage": 1e3
             }
         )
-        return self.parse(raw)
+
+        if variant_infos:
+            return self.parse(raw).join(
+                pl.DataFrame(variant_infos),
+                on="snpId",
+                how="left",
+            ).select([
+                "snpId",
+                "variantId",
+                "b37VariantId",
+                "geneSymbol",
+                "pValue",
+                "datasetId",
+                "tissueSiteDetailId",
+                "ontologyId",
+                "nes",
+                "maf01",
+                "alt",
+                "ref",
+            ])
+        else:
+            return self.parse(raw).select([
+                "snpId",
+                "variantId",
+                "geneSymbol",
+                "pValue",
+                "datasetId",
+                "tissueSiteDetailId",
+                "ontologyId",
+                "nes"
+            ])
 
     def parse(self, raw):
-        print(raw['data'])
-        return raw["data"]
+        return pl.DataFrame(raw['data'])
