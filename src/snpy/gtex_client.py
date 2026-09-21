@@ -112,3 +112,4 @@ class GTExClient(BaseAPIClient):
 
     def parse(self, raw):
         return pl.DataFrame(raw['data'])
+
