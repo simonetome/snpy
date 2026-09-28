@@ -43,7 +43,7 @@ print(snps)
 
 if __name__ == "__main__":   
     
-    data = get_eqtl(snps, tissues=["Muscle_Skeletal","Testis"])
+    data = get_eqtl(snps)
     print(data)
     data.write_csv("test/output/best_snps.csv")
 

@@ -68,16 +68,26 @@ class GTExClient(BaseAPIClient):
         else:
             print("Not needing conversion")
 
-        
-        raw = self._get(
-            self.base_url+'association/singleTissueEqtl', 
-            params={
-                "variantId": variant_ids,
-                "tissueSiteDetailId": tissues,
-                "datasetId": dataset_id,
-                "itemsPerPage": 1e3
-            }
-        )
+
+        if tissues is None:
+            raw = self._get(
+                self.base_url+'association/singleTissueEqtl', 
+                params={
+                    "variantId": variant_ids,
+                    "datasetId": dataset_id,
+                    "itemsPerPage": 1e3
+                }
+            )
+        else:
+            raw = self._get(
+                self.base_url+'association/singleTissueEqtl', 
+                params={
+                    "variantId": variant_ids,
+                    "tissueSiteDetailId": tissues,
+                    "datasetId": dataset_id,
+                    "itemsPerPage": 1e3
+                }
+            )
 
         if variant_infos:
             return self.parse(raw).join(
